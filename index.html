@@ -73,20 +73,148 @@
 		</div>
 	</div>
 
-	<div id="experiment">
-		
+	<!-- Shows user's math expression -->
+	<div id="showexp">
+		<div class="container">
+			
+			<div id="showexp_title">
+				<p id="showexp_lead"></p>
+			</div>
+			
+			<div id="showexp_row">
+				<div id="row_yourexp"></div>
+			</div>
+			
+		</div>
 	</div>
 
+	<!-- Shows expression's validity -->
+	<div id="validexp">
+		<div class="container">
+			
+			<div id="validexp_title">
+				<p id="validexp_lead"></p>
+			</div>
+			
+			<div id="validexp_row">
+				<div id="row_typevalidity"></div>
+				<div id="row_showvalidity"></div>
+			</div>
+			
+		</div>
+	</div>
+	
+	<!-- Footer -->
+	<footer>
+		<h4 align="center">Copyright &copy; 2016</h4>
+	</footer>
+	
 	<!-- Javascript -->
 	<script>
 	$(document).ready(function(){
+	
 		$('#mathexp').on('keydown',function search(e) {
 			if(e.keyCode == 13) {
 				e.preventDefault();
-				$('#experiment').text('hello').addClass('biru');
-				
+				$('#row_showvalidity').html('');
+				var showexp= showExp();
+				var validpar = validPar();
 			}
 		});
+		
+		function showExp() {
+			var exp = $('#mathexp').val();
+			
+			$('#showexp').addClass('content-section-b').css('border-top', 0);
+			$('#showexp_title').addClass('col-md-6 col-md-offset-3 text-center wrap_title');
+			$('#showexp_lead').addClass('lead').css({'font-size': 36, 'margin-top': 0}).html('<b>Your math expression</b>');
+			$('#showexp_row').addClass('row');
+			$('#row_yourexp').addClass('col-md-6 col-md-offset-3 text-center wrap_title').css('font-size', 24).html(exp);
+		}
+		
+		function validPar() {
+			var arrPar = [];
+			var arrIdxPar = [];
+			var exp = $('#mathexp').val();
+			var valid = 1;
+			
+			$('#validexp').addClass('content-section-a').css('border-top', 0);
+			$('#validexp_title').addClass('col-md-6 col-md-offset-3 text-center wrap_title');
+			$('#validexp_lead').addClass('lead').css({'font-size': 36, 'margin-top': 0}).html('<b>Validation Check</b>');
+			$('#validexp_row').addClass('row');
+			
+			for (var i=0; i < exp.length; i++) {
+				if (exp.charAt(i) == '{') {
+					arrPar.push('{');
+					arrIdxPar.push(i);
+				} else if (exp.charAt(i) == '[') {
+					arrPar.push('[');
+					arrIdxPar.push(i);
+				} else if (exp.charAt(i) == '(') {
+					arrPar.push('(');
+					arrIdxPar.push(i);
+				} else if (exp.charAt(i) == '}' || exp.charAt(i) == ']' || exp.charAt(i) == ')') {
+					if (arrPar.length - 1 < 0) {
+						// invalid sequence of parenthesses occurs
+						valid = 0;
+						$('#row_showvalidity').addClass('col-md-6 col-md-offset-3 text-center wrap_title').css('font-size', 24);
+						$('#row_typevalidity').addClass('col-md-6 col-md-offset-3 text-center wrap_title').css({'font-size': 24, 'margin-top': 0}).html('<b>Invalid sequence of parenthesses</b>');
+						
+						if (i != exp.length-1) {
+							$('#row_showvalidity').html(exp.slice(0, -(exp.length-i))+'<font color="red">'+exp.slice(i, -(exp.length-i-1))+'</font>'+exp.slice(i+1));
+						} else {
+							$('#row_showvalidity').html(exp.slice(0, -(exp.length-i))+'<font color="red">'+exp.slice(i)+'</font>');
+						}
+						break;
+					} else {
+						if ((exp.charAt(i) == '}' && arrPar[arrPar.length - 1] == '{') || (exp.charAt(i) == ']' && arrPar[arrPar.length - 1] == '[') || (exp.charAt(i) == ')' && arrPar[arrPar.length - 1] == '(')) {
+							arrPar.pop();
+							arrIdxPar.pop();
+						} else {
+							// invalid sequence of parenthesses occurs
+							valid = 0;
+							$('#row_showvalidity').addClass('col-md-6 col-md-offset-3 text-center wrap_title').css('font-size', 24);
+							$('#row_typevalidity').addClass('col-md-6 col-md-offset-3 text-center wrap_title').css({'font-size': 24, 'margin-top': 0}).html('<b>Invalid sequence of parenthesses</b>');
+							
+							if (i != exp.length-1) {
+								$('#row_showvalidity').html(exp.slice(0, -(exp.length-arrIdxPar[arrIdxPar.length-1]))+'<font color="red">'+exp.slice(arrIdxPar[arrIdxPar.length-1], -(exp.length-i-1))+'</font>'+exp.slice(i+1));
+							} else {
+								$('#row_showvalidity').html(exp.slice(0, -(exp.length-arrIdxPar[arrIdxPar.length-1]))+'<font color="red">'+exp.slice(arrIdxPar[arrIdxPar.length-1])+'</font>');
+							}
+							break;
+						}
+					}
+				}
+			}
+			
+			if (valid == 1) {
+				if (arrPar.length != 0) {
+					// invalid number of parenthesses
+					var std_alone;
+				
+					$('#row_showvalidity').addClass('col-md-6 col-md-offset-3 text-center wrap_title').css('font-size', 24);
+					$('#row_typevalidity').addClass('col-md-6 col-md-offset-3 text-center wrap_title').css({'font-size': 24, 'margin-top': 0}).html('<b>Invalid number of parenthesses</b>');
+					
+					for (var j = 0; j < exp.length; j++) {
+						std_alone = 0;
+						for (var k = 0; k < arrIdxPar.length; k++) {
+							if (j == arrIdxPar[k]) {
+								std_alone = 1;
+								$('#row_showvalidity').append('<font color="red">'+exp.charAt(j)+'</font>');
+								break;
+							}
+						}
+						if (std_alone == 0) {
+							$('#row_showvalidity').append(exp.charAt(j));
+						}
+					}
+				} else {
+					// valid 
+					
+				}
+			}
+			
+		}
 		
 	});	
 	</script>
